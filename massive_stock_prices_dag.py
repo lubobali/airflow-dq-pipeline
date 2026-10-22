@@ -2,19 +2,19 @@ from airflow.decorators import dag
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 from airflow.models import Variable
-from include.eczachly.poke_glue_partition import poke_glue_partition
-from include.eczachly.scripts.polygon_stock_prices import fetch_stock_prices
+from include.helpers.poke_glue_partition import poke_glue_partition
+from include.helpers.scripts.polygon_stock_prices import fetch_stock_prices
 
 # Get AWS credentials from Airflow Variables
-aws_access_key_id = Variable.get("DATAEXPERT_AWS_ACCESS_KEY_ID")
-aws_secret_access_key = Variable.get("DATAEXPERT_AWS_SECRET_ACCESS_KEY")
+aws_access_key_id = Variable.get("AWS_ACCESS_KEY_ID")
+aws_secret_access_key = Variable.get("AWS_SECRET_ACCESS_KEY")
 aws_region = Variable.get("AWS_GLUE_REGION")
 s3_bucket = Variable.get("AWS_S3_BUCKET_TABULAR")
 
 def run_stock_prices_script(output_table: str, **context):
     """Execute the stock prices fetching function with AWS credentials"""
     run_date = context['ds']
-    tickers_table = "zachwilson.stock_tickers"
+    tickers_table = "analytics.stock_tickers"
     
     result = fetch_stock_prices(
         run_date=run_date,
@@ -179,7 +179,7 @@ def cleanup_staging(staging_table: str, **context):
 @dag(
     description="A DAG that waits for Polygon ticker data then fetches stock prices and creates Snowflake Iceberg table",
     default_args={
-        "owner": "Zach Wilson",
+        "owner": "Lubo Bali",
         "start_date": datetime(2026, 1, 1),
         "retries": 1,
         "execution_timeout": timedelta(hours=2),
@@ -191,7 +191,7 @@ def cleanup_staging(staging_table: str, **context):
     tags=["community", "polygon", "iceberg", "stock-prices", "snowflake"],
 )
 def massive_stock_prices_dag():
-    upstream_table = 'zachwilson.stock_tickers'
+    upstream_table = 'analytics.stock_tickers'
     
     wait_for_tickers = PythonOperator(
         task_id='wait_for_polygon_tickers',
@@ -206,9 +206,9 @@ def massive_stock_prices_dag():
         provide_context=True
     )
     
-    # Staging table: production name + _stg_ + date (Zach's convention)
-    production_table = "zachwilson.stock_prices"
-    staging_table = "zachwilson.stock_prices_stg_{{ ds_nodash }}"
+    # Staging table: production name + _stg_ + date (a common staging convention)
+    production_table = "analytics.stock_prices"
+    staging_table = "analytics.stock_prices_stg_{{ ds_nodash }}"
     
     fetch_to_staging = PythonOperator(
         task_id='fetch_to_staging',

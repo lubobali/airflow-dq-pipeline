@@ -50,10 +50,6 @@ Sensor → Staging → DQ Checks → Production → Cleanup
 - ✅ Staging table isolation
 - ✅ Automated data quality gates
 
-## 📚 Credit
-
-Pattern learned from [Zach Wilson](https://linkedin.com/in/eczachly) — ex-Netflix, ex-Airbnb Data Engineer — via [DataExpert.io](https://dataexpert.io) bootcamp.
-
 ## 🔗 Related Projects
 
 - [airflow-soda-integration](https://github.com/lubobali/airflow-soda-integration) - Soda CLI + Airflow for DQ checks
